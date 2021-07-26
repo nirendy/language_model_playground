@@ -6,3 +6,6 @@ class Locale:
     early_stopping = 'Early stopping'
     no_repeat_ngram_size = 'No repeat n-gram size'
     num_return_sequences = 'Num return sequences'
+    models_selection_label = 'Select Models (Max 2)'
+    models_selection_tooltip = 'e.x. "gpt2", "distilgpt2"'
+    generation_preset_selectbox_label = 'Generation Preset'

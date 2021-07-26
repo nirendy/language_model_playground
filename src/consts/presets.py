@@ -8,6 +8,7 @@ SHARED = {
     'max_length': 50,
     'no_repeat_ngram_size': 2,
 }
+
 GREEDY = {
     **SHARED,
 }
