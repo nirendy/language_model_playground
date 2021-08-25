@@ -68,5 +68,5 @@ def run():
     select_generation_params()
 
     generation_inputs = AppState.get_generation_inputs()
-    with st.beta_expander('Generation Inputs:'):
+    with st.expander('Generation Inputs:'):
         st.write(generation_inputs)

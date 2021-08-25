@@ -5,9 +5,9 @@ import torch
 import src.components.model_selector as ModelSelector
 import src.components.generation_params_selector as GenerationParamsSelector
 from src.components.text_with_predefined import select_input_text
-from src.components.text_with_predefined import select_input_text2
 from src.consts.app_state import AppState
 from src.consts.app_state import ModelStateKeys
+from src.consts.app_state import available_models
 from src.consts.locale import Locale
 import src.consts.presets as Presets
 from src.utils.logits import TokenizerDebugger
@@ -28,23 +28,24 @@ def compute_input_ids(tokenizer, input_sentence: str):
 def run():
     AppState.init_state()
 
-    with st.beta_container():
+    with st.container():
         select_input_text(
             key=ModelStateKeys.init_input_tokens.name,
             label=Locale.init_sentence,
             options=Presets.INPUT_TOKENS,
+            use_text_area=True
         )
 
     st_tags.st_tags_sidebar(
         label=Locale.models_selection_label,
         text=Locale.models_selection_tooltip,
-        suggestions=ModelSelector.available_models,
+        suggestions=available_models,
         maxtags=2,
         key=ModelStateKeys.selected_models.name,
     )
 
     st.sidebar.write('___')
-    with st.sidebar.beta_container():
+    with st.sidebar.container():
         GenerationParamsSelector.run()
 
     active_models = AppState.get_active_model_states()
@@ -58,7 +59,7 @@ def run():
         st.stop()
 
     st.write('___')
-    cols = st.beta_columns(len(active_models))
+    cols = st.columns(len(active_models))
     for i, model_state in enumerate(AppState.get_active_model_states()):
         with cols[i]:
             ModelSelector.render(model_state)

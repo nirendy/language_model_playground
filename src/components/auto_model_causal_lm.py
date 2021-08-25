@@ -9,7 +9,7 @@ def render(model_state: ModelState, model_outputs, tokenizer_debugger):
         if i > 0:
             st.write('___')
 
-        st.write(model_state.get_tokenizer().decode(model_output, skip_special_tokens=True))
+        st.text(model_state.get_tokenizer().decode(model_output, skip_special_tokens=True))
 
         generated_model = model_state.get_model()(model_output)
         res = tokenizer_debugger.get_sequence_logit_top_n_tokens(

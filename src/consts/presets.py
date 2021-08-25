@@ -1,7 +1,7 @@
 INPUT_TOKENS = [
     "I enjoy walking with my cute dog",
     'The president of the USA is',
-    "Another text",
+    "Q: What is the name of the president of the United States and when was he born?\nA:",
 ]
 
 SHARED = {

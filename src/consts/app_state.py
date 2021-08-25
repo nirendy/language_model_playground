@@ -71,6 +71,7 @@ class ModelState:
             self.model_changed()
         except Exception as e:
             print(e)
+            st.write(e)
             st.session_state[self.prefix_field('is_erroneous_name')] = True
 
     def is_erroneous_name(self):
@@ -113,7 +114,7 @@ class AppState:
 
         if len(warnings) > 0:
             st.warning('Data corruption was detected, automatic fix applied.')
-            with st.beta_expander('Please see the changes below'):
+            with st.expander('Please see the changes below'):
                 for warning in warnings:
                     st.write(warning)
             st.write('___')
@@ -141,7 +142,7 @@ class AppState:
 
     @staticmethod
     def get_init_input_tokens() -> str:
-        return st.session_state['init_input_tokens']
+        return st.session_state[ModelStateKeys.init_input_tokens.name]
 
     @staticmethod
     def get_number_of_alternative_tokens() -> int:
