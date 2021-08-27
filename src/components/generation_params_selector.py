@@ -2,9 +2,9 @@ import streamlit as st
 from typing import get_type_hints
 
 from src.consts import presets as Presets
-from src.consts.app_state import DebuggingParamsDefaults
-from src.consts.app_state import GenerationInputDefaults, AppState
-from src.consts.app_state import ModelStateKeys
+from src.stores.app_state import DebuggingParamsDefaults
+from src.stores.app_state import GenerationInputDefaults, AppState
+from src.stores import ModelStateKeys
 from src.consts.locale import Locale
 
 

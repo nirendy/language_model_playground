@@ -1,5 +1,6 @@
 import streamlit as st
-from src.consts.app_state import ModelState
+
+from src.stores.model_state import ModelState
 
 
 def render(model_state: ModelState):

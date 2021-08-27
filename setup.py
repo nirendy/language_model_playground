@@ -15,5 +15,7 @@ setuptools.setup(
     python_requires=">=3.6",
     install_requires=[
         "streamlit >= 0.63",
+        'joblib',
+        'tqdm'
     ],
 )

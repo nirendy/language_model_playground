@@ -1,14 +1,8 @@
-from enum import Enum
-from typing import NamedTuple
-from src.utils.model import Model, loading_model
-
 import streamlit as st
-from typing import get_type_hints, List, TypeVar
+from typing import get_type_hints, List
 from src.consts import presets as Presets
-
-T = TypeVar('T')
-
-available_models = ['None', 'distilgpt2', 'gpt2']
+from src.stores import ModelStateKeys
+from src.utils.streamlit_utils import _init_field
 
 
 class GenerationInputDefaults:
@@ -25,64 +19,6 @@ class GenerationInputDefaults:
 
 class DebuggingParamsDefaults:
     number_of_alternative_tokens: int = 4
-
-
-def _init_field(field_name: str, value: T) -> T:
-    if field_name not in st.session_state:
-        st.session_state[field_name] = value
-
-    return st.session_state[field_name]
-
-
-class ModelStateKeys(Enum):
-    selected_models = 0
-    init_input_tokens = 1
-    chosen_generation_preset = 2
-
-
-class ModelState:
-    def __init__(self, model_name: str):
-        self.model_name = model_name
-
-        _init_field(self.prefix_field('model'), Model())
-        _init_field(self.prefix_field('is_model_loaded'), False)
-        _init_field(self.prefix_field('is_erroneous_name'), False)
-
-    def prefix_field(self, field):
-        return f"{self.model_name}_{field}"
-
-    def is_loaded(self):
-        return st.session_state[self.prefix_field('is_model_loaded')]
-
-    def get_model(self):
-        return st.session_state[self.prefix_field('model')].model
-
-    def get_tokenizer(self):
-        return st.session_state[self.prefix_field('model')].tokenizer
-
-    def model_changed(self):
-        st.session_state[self.prefix_field('is_erroneous_name')] = False
-        st.session_state[self.prefix_field('is_model_loaded')] = (
-                st.session_state[self.prefix_field('model')].model_name == self.model_name)
-
-    def load_model(self):
-        try:
-            st.session_state[self.prefix_field('model')] = loading_model(self.model_name)
-            self.model_changed()
-        except Exception as e:
-            print(e)
-            st.write(e)
-            st.session_state[self.prefix_field('is_erroneous_name')] = True
-
-    def is_erroneous_name(self):
-        return st.session_state[self.prefix_field('is_erroneous_name')]
-
-    def should_show_load_button(self):
-        return not (
-                st.session_state[self.prefix_field('is_erroneous_name')]
-                or
-                st.session_state[self.prefix_field('is_model_loaded')]
-        )
 
 
 class AppState:
@@ -113,11 +49,12 @@ class AppState:
                     st.session_state[k] = new_val
 
         if len(warnings) > 0:
-            st.warning('Data corruption was detected, automatic fix applied.')
-            with st.expander('Please see the changes below'):
-                for warning in warnings:
-                    st.write(warning)
-            st.write('___')
+            # st.warning('Data corruption was detected, automatic fix applied.')
+            # with st.expander('Please see the changes below'):
+            #     for warning in warnings:
+            #         st.write(warning)
+            # st.write('___')
+            print(warnings)
 
     @staticmethod
     def clear_cache():
@@ -149,14 +86,12 @@ class AppState:
         return st.session_state['number_of_alternative_tokens']
 
     @staticmethod
-    def selected_models() -> List[str]:
-        return _init_field(ModelStateKeys.selected_models.name, [])
+    def get_num_return_sequences() -> int:
+        return st.session_state['num_return_sequences']
 
     @staticmethod
-    def get_active_model_states() -> List[ModelState]:
-        selected_models = AppState.selected_models() or []
-
-        return [ModelState(model_id) for model_id in selected_models]
+    def selected_models() -> List[str]:
+        return _init_field(ModelStateKeys.selected_models.name, [])
 
     @staticmethod
     def chosen_generation_preset():
