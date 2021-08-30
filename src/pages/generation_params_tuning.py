@@ -1,7 +1,7 @@
 import streamlit as st
 from typing import get_type_hints
 
-from src.consts import presets as Presets
+from src.consts import presets as PRESETS
 from src.stores.app_state import DebuggingParamsDefaults
 from src.stores.app_state import GenerationInputDefaults, AppState
 from src.stores import AppStateKeys
@@ -11,11 +11,12 @@ from src.consts.locale import Locale
 def render():
     st.selectbox(
         Locale.generation_preset_selectbox_label,
-        options=Presets.TOKEN_GENERATION_CONFIGURATION_KEYS,
+        options=PRESETS.TOKEN_GENERATION_CONFIGURATION_KEYS,
         key=AppStateKeys.chosen_generation_preset.name,
-        on_change=AppState.set_chosen_generation_preset
+        on_change=AppState().update_generation_params_by_chosen_generation_preset
     )
 
+    # noinspection PyUnusedLocal
     def changed(t):
         # print(f"{t} changed {st.session_state[t]}")
         pass
@@ -29,7 +30,7 @@ def render():
                 # print(f'init {k}')
                 st.session_state[k] = getattr(defaults, k)
 
-            if not AppState.is_general_preset() and k not in AppState.get_chosen_preset_generation_configuration():
+            if not AppState().is_general_preset and k not in AppState().get_chosen_preset_generation_configuration():
                 continue
 
             if k_type == str:

@@ -1,9 +1,8 @@
-import math
+from dataclasses import dataclass
 from typing import List
 from typing import Optional
 
 import requests
-from dataclasses import dataclass
 
 HUGGINGFACE_BASE_URL = 'https://huggingface.co/'
 _PAGE_SIZE = 30

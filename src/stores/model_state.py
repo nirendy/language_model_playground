@@ -1,40 +1,35 @@
-import logging
 from typing import List
 
 import streamlit as st
-from typing import Optional
 import torch
-from tokenizers import tokenizers
-
-from transformers import PreTrainedModel
-from transformers import PreTrainedTokenizer
-from transformers import AutoModelForCausalLM, AutoModel
-from transformers import AutoTokenizer
 
 from src.stores import AppStateKeys
+from src.stores import BaseState
 from src.stores import ModelStateKeys
 from src.stores.app_state import AppState
 from src.utils.huggingface import encode_input_text
 from src.utils.huggingface import generate_model_outputs
-from src.utils.huggingface import get_auto_model_by_task
 from src.utils.huggingface import get_model_and_tokenizer
-from src.utils.streamlit_utils import _init_field
 
 
-class ModelState:
+class ModelState(BaseState[ModelStateKeys]):
     def __init__(self, model_name: str):
         self.model_name = model_name
 
-        _init_field(self.prefix_field(ModelStateKeys.model), None)
-        _init_field(self.prefix_field(ModelStateKeys.error), None)
+        self.get_or_create_by_key(ModelStateKeys.model, None)
+        self.get_or_create_by_key(ModelStateKeys.tokenizer, None)
+        self.get_or_create_by_key(ModelStateKeys.error, None)
 
     @staticmethod
     def get_active_model_states() -> List["ModelState"]:
-        selected_models = AppState.selected_models() or []
+        selected_models = AppState().get_by_key(AppStateKeys.selected_models)
         return [ModelState(model_id) for model_id in selected_models]
 
-    def prefix_field(self, model_state_key: ModelStateKeys):
-        return f"{self.model_name}_{model_state_key.name}"
+    def state_prefix(self) -> str:
+        return self.model_name
+
+    def prefix_field(self, state_key: ModelStateKeys):
+        return super(ModelState, self).prefix_field(state_key)
 
     def is_loaded(self):
         return self.get_model() is not None
@@ -50,7 +45,7 @@ class ModelState:
             return
         try:
             model, tokenizer = get_model_and_tokenizer(
-                task_name=AppState.get_by_key(AppStateKeys.selected_task),
+                task_name=AppState().get_by_key(AppStateKeys.selected_task),
                 model_name=self.model_name
             )
 
@@ -75,14 +70,17 @@ class ModelState:
 # @st.cache(allow_output_mutation=True, hash_funcs={tokenizers.Tokenizer: id})
 def generate_model_output(model_id: str):
     model_state = ModelState(model_id)
-    encoded_input = encode_input_text(model_state.get_tokenizer(), AppState.get_init_input_tokens())
-    torch.manual_seed(AppState.get_generation_seed())
+    encoded_input = encode_input_text(
+        model_state.get_tokenizer(),
+        AppState().get_by_key(AppStateKeys.init_input_tokens)
+    )
+    torch.manual_seed(AppState().get_by_key(AppStateKeys.seed))
 
     # initial
     model_outputs = generate_model_outputs(
         model=model_state.get_model(),
         input_ids=encoded_input,
-        **AppState.get_generation_inputs()
+        **AppState().get_generation_inputs()
     )
 
     return model_outputs

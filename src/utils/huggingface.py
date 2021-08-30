@@ -1,5 +1,4 @@
 from transformers import AutoTokenizer
-from transformers.modelcard import TASK_TAG_TO_NAME_MAPPING
 from transformers.pipelines import SUPPORTED_TASKS
 
 
@@ -15,9 +14,9 @@ def get_model_and_tokenizer(task_name, model_name):
 
     return model, tokenizer
 
+
 def encode_input_text(tokenizer, input_tokens):
     return tokenizer.encode(input_tokens, return_tensors='pt')
-
 
 
 def generate_model_outputs(model, input_ids, **generation_params_kwargs):

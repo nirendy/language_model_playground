@@ -1,13 +1,14 @@
 from typing import List
 
-import streamlit as st
 import pandas as pd
-import torch
+import streamlit as st
 
+from src.stores import AppStateKeys
+from src.stores import ModelStateKeys
 from src.stores.app_state import AppState
 from src.stores.model_state import ModelState
-from src.utils.logits import TokenizerDebugger
 from src.stores.model_state import generate_model_output
+from src.utils.logits import TokenizerDebugger
 
 
 def render(models_states: List[ModelState]):
@@ -18,17 +19,16 @@ def render(models_states: List[ModelState]):
     for i, model_state in enumerate(ModelState.get_active_model_states()):
         model_state.load_model()
         with model_titles_cols[i]:
+            st.markdown(f"## **{model_state.model_name}**")
             if model_state.is_erroneous():
-                st.write(f"Model named '{model_state.model_name}' was not found!")
-            else:
-                st.markdown(f"## **{model_state.model_name}**")
+                st.error(model_state.prefix_field(ModelStateKeys.error))
 
     model_outputs = [
         generate_model_output(model_state.model_name) if model_state.is_loaded() else None
         for model_state_i, model_state in enumerate(models_states)
     ]
 
-    for output_i in range(AppState.get_num_return_sequences()):
+    for output_i in range(AppState().get_by_key(AppStateKeys.num_return_sequences)):
         cols_sentence = create_cols()
         cols_debug = create_cols()
         for model_state_i, model_state in enumerate(models_states):
@@ -42,7 +42,7 @@ def render(models_states: List[ModelState]):
                     generated_model = model_state.get_model()(model_output)
                     res = tokenizer_debugger.get_sequence_logit_top_n_tokens(
                         model_output, generated_model.logits,
-                        AppState.get_number_of_alternative_tokens()
+                        AppState().get_by_key(AppStateKeys.number_of_alternative_tokens)
                     )
 
                     st.dataframe(pd.DataFrame(res).fillna(''))

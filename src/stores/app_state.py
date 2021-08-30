@@ -1,14 +1,11 @@
-from typing import TypeVar
+from typing import get_type_hints
 
 import streamlit as st
-from typing import get_type_hints, List
+
+# noinspection PyPep8Naming
 from src.consts import presets as Presets
 from src.stores import AppStateKeys
-from src.stores import Pages
-from src.utils.streamlit_utils import _init_field
-from src.utils.streamlit_utils import _is_inited
-
-T = TypeVar('T')
+from src.stores import BaseState
 
 MAX_ALLOWED_MODELS = 2
 
@@ -29,29 +26,16 @@ class DebuggingParamsDefaults:
     number_of_alternative_tokens: int = 4
 
 
-class AppState:
-    @staticmethod
-    def init_state():
-        _init_field(AppStateKeys.selected_models.name, [])
+class AppState(BaseState[AppStateKeys]):
+    def state_prefix(self) -> str:
+        return ""
+
+    @classmethod
+    def init_state(cls):
+        cls().get_or_create_by_key(AppStateKeys.selected_models, [])
         # _init_field(AppStateKeys.init_input_tokens.name, Presets.INPUT_TOKENS[0])
         # _init_field(AppStateKeys.selected_page.name, Pages.home)
-        AppState.fix_corruption()
-
-    @staticmethod
-    def is_inited_by_key(key: AppStateKeys) -> bool:
-        return _is_inited(key.name)
-
-    @staticmethod
-    def get_or_create_by_key(key: AppStateKeys, default_val: T) -> T:
-        return _init_field(key.name, default_val)
-
-    @staticmethod
-    def get_by_key(key: AppStateKeys):
-        return st.session_state[key.name]
-
-    @staticmethod
-    def set_by_key(key: AppStateKeys, new_val):
-        st.session_state[key.name] = new_val
+        cls().fix_corruption()
 
     @staticmethod
     def fix_corruption():
@@ -81,21 +65,11 @@ class AppState:
             # st.write('___')
             print(warnings)
 
-    @staticmethod
-    def clear_cache():
-        for key in st.session_state.keys():
-            del st.session_state[key]
-
-    @staticmethod
-    def get_generation_inputs():
+    def get_generation_inputs(self):
         return {
             k: st.session_state[k]
             for k in get_type_hints(GenerationInputDefaults)
-            if (
-                    AppState.chosen_generation_preset() == Presets.TOKEN_GENERATION_CONFIGURATION_KEYS[0]
-                    or
-                    (k in Presets.TOKEN_GENERATION_CONFIGURATION[AppState.chosen_generation_preset()])
-            )
+            if self.is_general_preset or (k in self.get_chosen_preset_generation_configuration())
         }
 
     @staticmethod
@@ -105,52 +79,25 @@ class AppState:
             for k in get_type_hints(DebuggingParamsDefaults)
         }
 
-    @staticmethod
-    def get_generation_seed() -> int:
-        return st.session_state['seed']
+    def select_model(self, model_name: str):
+        selected_models = self.get_by_key(AppStateKeys.selected_models)
+        if (len(selected_models) <= MAX_ALLOWED_MODELS) or (model_name not in selected_models):
+            selected_models.append(model_name)
 
-    @staticmethod
-    def get_init_input_tokens() -> str:
-        return st.session_state[AppStateKeys.init_input_tokens.name]
+    def deselected_model(self, model_name: str):
+        selected_models = self.get_by_key(AppStateKeys.selected_models)
+        if model_name in selected_models:
+            selected_models.remove(model_name)
 
-    @staticmethod
-    def get_number_of_alternative_tokens() -> int:
-        return st.session_state['number_of_alternative_tokens']
+    def get_chosen_preset_generation_configuration(self):
+        if self.is_general_preset:
+            return {}
+        return Presets.TOKEN_GENERATION_CONFIGURATION[self.get_by_key(AppStateKeys.chosen_generation_preset)]
 
-    @staticmethod
-    def get_num_return_sequences() -> int:
-        return st.session_state['num_return_sequences']
+    def update_generation_params_by_chosen_generation_preset(self):
+        for k, v in self.get_chosen_preset_generation_configuration().items():
+            st.session_state[k] = v
 
-    @staticmethod
-    def selected_models() -> List[str]:
-        return _init_field(AppStateKeys.selected_models.name, [])
-
-    @staticmethod
-    def select_model(model_name):
-        if len(AppState.selected_models()) <= MAX_ALLOWED_MODELS or model_name not in AppState.selected_models():
-            st.session_state[AppStateKeys.selected_models.name].append(model_name)
-
-    @staticmethod
-    def deselected_model(model_name):
-        if model_name in AppState.selected_models():
-            st.session_state[AppStateKeys.selected_models.name].remove(model_name)
-
-    @staticmethod
-    def chosen_generation_preset():
-        return st.session_state[AppStateKeys.chosen_generation_preset.name]
-
-    @staticmethod
-    def get_chosen_preset_generation_configuration():
-        if AppState.is_general_preset():
-            return None
-        return Presets.TOKEN_GENERATION_CONFIGURATION[AppState.chosen_generation_preset()]
-
-    @staticmethod
-    def set_chosen_generation_preset():
-        if not AppState.is_general_preset():
-            for k, v in Presets.TOKEN_GENERATION_CONFIGURATION[AppState.chosen_generation_preset()].items():
-                st.session_state[k] = v
-
-    @staticmethod
-    def is_general_preset():
-        return AppState.chosen_generation_preset() == Presets.TOKEN_GENERATION_CONFIGURATION_KEYS[0]
+    @property
+    def is_general_preset(self):
+        return self.get_by_key(AppStateKeys.chosen_generation_preset) == Presets.TOKEN_GENERATION_CONFIGURATION_KEYS[0]

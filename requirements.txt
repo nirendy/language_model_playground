@@ -6,3 +6,6 @@ matplotlib
 torch
 streamlit-tags
 sentencepiece
+streamlit~=0.86.0
+requests~=2.26.0
+setuptools~=56.0.0
