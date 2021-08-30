@@ -4,15 +4,15 @@ from typing import get_type_hints
 from src.consts import presets as Presets
 from src.stores.app_state import DebuggingParamsDefaults
 from src.stores.app_state import GenerationInputDefaults, AppState
-from src.stores import ModelStateKeys
+from src.stores import AppStateKeys
 from src.consts.locale import Locale
 
 
-def select_generation_params():
+def render():
     st.selectbox(
         Locale.generation_preset_selectbox_label,
         options=Presets.TOKEN_GENERATION_CONFIGURATION_KEYS,
-        key=ModelStateKeys.chosen_generation_preset.name,
+        key=AppStateKeys.chosen_generation_preset.name,
         on_change=AppState.set_chosen_generation_preset
     )
 
@@ -62,11 +62,3 @@ def select_generation_params():
                     on_change=changed,
                     args=[k]
                 )
-
-
-def run():
-    select_generation_params()
-
-    generation_inputs = AppState.get_generation_inputs()
-    with st.expander('Generation Inputs:'):
-        st.write(generation_inputs)

@@ -1,37 +1,46 @@
 import math
 from typing import List
+from typing import Optional
 
 import requests
 from dataclasses import dataclass
 
-BASE_URL = 'https://huggingface.co/models-json'
+HUGGINGFACE_BASE_URL = 'https://huggingface.co/'
 _PAGE_SIZE = 30
 
 
 @dataclass
 class DownloadableModel:
     model_name: str
-    task: str
     downloads: int
+    author: Optional[str]
 
 
-class DownloadableModels:
+class DownloadableModelsState:
     @staticmethod
-    def download_model_page(page_i: int) -> List[DownloadableModel]:
-        params = f'?sort=downloads&p={page_i}'
-        response = requests.get(BASE_URL + params)
+    def download_model_page(
+            page_i: Optional[int] = None,
+            search: Optional[str] = None,
+            other: Optional[str] = None,
+    ) -> List[DownloadableModel]:
+        def_params = 'models-json?sort=downloads&library=pytorch'
+        if page_i is not None:
+            def_params += f"&p={page_i}"
+        if search:
+            def_params += f"&search={search}"
+        if other is not None:
+            def_params += f"&other={other}"
+
+        response = requests.get(HUGGINGFACE_BASE_URL + def_params)
         return [
-            DownloadableModel(model['model']['modelId'], model['model']['pipeline_tag'], model['model']['downloads'])
+            DownloadableModel(
+                model_name=model['model']['modelId'],
+                # task=model['model'].get('pipeline_tag', None),
+                downloads=model['model']['downloads'],
+                author=model['model'].get('author', None)
+            )
             for model in response.json()['modelsWithAuthorObj']
         ]
-
-    @classmethod
-    def download_top_k_models(cls, k: int) -> "DownloadableModels":
-        models = []
-        for i in range(math.ceil(k / _PAGE_SIZE)):
-            models += cls.download_model_page(i)
-
-        return cls(models)
 
     def __init__(self, models: List[DownloadableModel]):
         self.models = models

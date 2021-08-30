@@ -16,6 +16,15 @@ setuptools.setup(
     install_requires=[
         "streamlit >= 0.63",
         'joblib',
-        'tqdm'
+        'tqdm',
+        'sentencepiece',
+        'transformers',
+        'tokenizers',
+        'pandas',
+        'numpy',
+        'matplotlib',
+        'torch',
+        'streamlit-tags',
+        'sentencepiece'
     ],
 )
