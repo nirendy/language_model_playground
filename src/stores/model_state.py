@@ -5,6 +5,7 @@ import torch
 
 from src.stores import AppStateKeys
 from src.stores import BaseState
+from src.stores import ModelID
 from src.stores import ModelStateKeys
 from src.stores.app_state import AppState
 from src.utils.huggingface import encode_input_text
@@ -13,7 +14,7 @@ from src.utils.huggingface import get_model_and_tokenizer
 
 
 class ModelState(BaseState[ModelStateKeys]):
-    def __init__(self, model_name: str):
+    def __init__(self, model_name: ModelID):
         self.model_name = model_name
 
         self.get_or_create_by_key(ModelStateKeys.model, None)

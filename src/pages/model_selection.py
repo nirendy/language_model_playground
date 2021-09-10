@@ -21,7 +21,7 @@ def cached_download_model_page(
 
 
 def render():
-    if len(AppState().get_by_key(AppStateKeys.selected_models)) > 0:
+    if AppState().is_model_selected:
         st.title('Selected Models')
         cols = st.columns([0.1, 0.8])
         for model_name in AppState().get_by_key(AppStateKeys.selected_models):
@@ -75,3 +75,4 @@ def render():
                     and (model.model_name not in AppState().get_by_key(AppStateKeys.selected_models))
             ):
                 st.button('Select', key=model.model_name, on_click=AppState().select_model, args=[model.model_name])
+

@@ -1,29 +1,49 @@
 import abc
-from enum import Enum
+import enum
+from typing import TypeVar
 
 import streamlit as st
 
-
-class AppStateKeys(Enum):
-    selected_models = 0
-    init_input_tokens = 1
-    chosen_generation_preset = 2
-    selected_page = 3
-    selected_task = 4
-    number_of_alternative_tokens = 5
-    num_return_sequences = 6
-    seed = 7
+ModelID = TypeVar('ModelID', str, str)
+DemoID = TypeVar('DemoID', int, int)
+DemoStepID = TypeVar('DemoStepID', int, int)
 
 
-class ModelStateKeys(Enum):
-    model = 0
-    tokenizer = 1
-    error = 2
+class AppStateKeys(enum.Enum):
+    selected_models = enum.auto()
+    init_input_tokens = enum.auto()
+    chosen_generation_preset = enum.auto()
+    selected_page = enum.auto()
+    selected_task = enum.auto()
+    number_of_alternative_tokens = enum.auto()
+    num_return_sequences = enum.auto()
+    seed = enum.auto()
+    demo_counter = enum.auto()
+    selected_demo = enum.auto()
+
+
+class ModelStateKeys(enum.Enum):
+    model = enum.auto()
+    tokenizer = enum.auto()
+    error = enum.auto()
+
+
+class DemoStateKeys(enum.Enum):
+    input_text = enum.auto()
+    model_id = enum.auto()
+    steps_counter = enum.auto()
+
+
+class DemoStepStateKeys(enum.Enum):
+    generation_params = enum.auto()
+    generation_input_changed = enum.auto()
+    generation_input_new_value = enum.auto()
+    model_output = enum.auto()
 
 
 from typing import Generic, TypeVar
 
-StateKeyT = TypeVar("StateKeyT", Enum, Enum)
+StateKeyT = TypeVar("StateKeyT", enum.Enum, enum.Enum)
 T = TypeVar('T')
 
 
@@ -33,7 +53,7 @@ class BaseState(abc.ABC, Generic[StateKeyT]):
         pass
 
     def prefix_field(self, state_key: StateKeyT) -> str:
-        return f"{self.state_prefix()}{state_key.name}"
+        return f"{self.state_prefix()}_{state_key.name}"
 
     def is_inited_by_key(self, key: StateKeyT) -> bool:
         return self.prefix_field(key) in st.session_state
@@ -50,13 +70,17 @@ class BaseState(abc.ABC, Generic[StateKeyT]):
     def set_by_key(self, key: StateKeyT, new_val):
         st.session_state[self.prefix_field(key)] = new_val
 
+    def delete_by_key(self, key: StateKeyT):
+        if self.prefix_field(key) in st.session_state:
+            del st.session_state[self.prefix_field(key)]
+
     @staticmethod
     def clear_all_caches():
         for key in st.session_state.keys():
             del st.session_state[key]
 
 
-class Pages(Enum):
+class Pages(enum.Enum):
     home = "Home"
     task_selection = "Task Selection"
     model_selection = "Model Selection"
