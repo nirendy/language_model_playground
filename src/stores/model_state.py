@@ -50,6 +50,14 @@ class ModelState(BaseState[ModelStateKeys]):
                 model_name=self.model_name
             )
 
+            if AppState().get_by_key(AppStateKeys.use_gpu):
+                device = "cuda:0" if torch.cuda.is_available() else "cpu"
+                try:
+                    model = model.to(device)
+                except Exception as err:
+                    print(err)
+                    st.warning(f"Could not load model to GPU, {err}")
+
             st.session_state[self.prefix_field(ModelStateKeys.model)] = model
             st.session_state[self.prefix_field(ModelStateKeys.tokenizer)] = tokenizer
             st.session_state[self.prefix_field(ModelStateKeys.error)] = None
@@ -62,26 +70,25 @@ class ModelState(BaseState[ModelStateKeys]):
     def is_erroneous(self):
         return st.session_state[self.prefix_field(ModelStateKeys.error)] is not None
 
-
 # def compute_input_ids(model_id: str, input_sentence: str):
 #     model_state = ModelState.get_model_state(model_id)
 #     return model_state.get_tokenizer().encode(input_sentence, return_tensors='pt')
 
 
 # @st.cache(allow_output_mutation=True, hash_funcs={tokenizers.Tokenizer: id})
-def generate_model_output(model_id: str):
-    model_state = ModelState(model_id)
-    encoded_input = encode_input_text(
-        model_state.get_tokenizer(),
-        AppState().get_by_key(AppStateKeys.init_input_tokens)
-    )
-    torch.manual_seed(AppState().get_by_key(AppStateKeys.seed))
-
-    # initial
-    model_outputs = generate_model_outputs(
-        model=model_state.get_model(),
-        input_ids=encoded_input,
-        **AppState().get_generation_inputs()
-    )
-
-    return model_outputs
+# def generate_model_output(model_id: str):
+#     model_state = ModelState(model_id)
+#     encoded_input = encode_input_text(
+#         model_state.get_tokenizer(),
+#         AppState().get_by_key(AppStateKeys.init_input_tokens)
+#     )
+#     torch.manual_seed(AppState().get_by_key(AppStateKeys.seed))
+#
+#     # initial
+#     model_outputs = generate_model_outputs(
+#         model=model_state.get_model(),
+#         input_ids=encoded_input,
+#         **AppState().get_generation_inputs()
+#     )
+#
+#     return model_outputs

@@ -18,7 +18,7 @@ def select_input_text(key, label, options, on_change=None, use_text_area=False):
 
     text_input_container = st.container()
 
-    with st.expander(select_box_label):
+    with st.expander(select_box_label, True):
         for i, opt in enumerate(options):
             if i > 0:
                 # st.write('___')

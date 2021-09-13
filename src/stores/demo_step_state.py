@@ -1,8 +1,10 @@
 import pandas as pd
 import torch
+import streamlit as st
 
 from src.consts.generation_input_options import GenerationInput
 from src.consts.generation_input_options import generation_inputs
+from src.stores import AppStateKeys
 from src.stores import BaseState
 from src.stores import DemoID
 from src.stores import DemoStateKeys
@@ -10,6 +12,7 @@ from src.stores import DemoStepID
 from src.stores import DemoStepStateKeys
 from src.stores import ModelID
 import src.consts.presets as PRESETS
+from src.stores.app_state import AppState
 from src.stores.demo_state import DemoState
 from src.utils.huggingface import encode_input_text
 from src.utils.huggingface import generate_model_outputs
@@ -85,6 +88,15 @@ class DemoStepState(BaseState[DemoStepStateKeys]):
             model_state.get_tokenizer(),
             self.demo_state.get_by_key(DemoStateKeys.input_text)
         )
+
+        if AppState().get_by_key(AppStateKeys.use_gpu):
+            device = "cuda:0" if torch.cuda.is_available() else "cpu"
+            try:
+                encoded_input = encoded_input.to(device)
+            except Exception as err:
+                print(err)
+                st.warning(f"Could not load text to GPU\n{err}")
+
         if 'seed' in generation_params:
             torch.manual_seed(generation_params['seed'])
 

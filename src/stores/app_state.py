@@ -36,6 +36,7 @@ class AppState(BaseState[AppStateKeys]):
     @classmethod
     def init_state(cls):
         cls().get_or_create_by_key(AppStateKeys.selected_models, [])
+        cls().get_or_create_by_key(AppStateKeys.use_gpu, False)
         cls().get_or_create_by_key(AppStateKeys.selected_task, 'text-generation')
         cls().fix_corruption()
 

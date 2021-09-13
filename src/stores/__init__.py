@@ -20,6 +20,7 @@ class AppStateKeys(enum.Enum):
     seed = enum.auto()
     demo_counter = enum.auto()
     selected_demo = enum.auto()
+    use_gpu = enum.auto()
 
 
 class ModelStateKeys(enum.Enum):
